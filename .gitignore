@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# Poetry
+poetry.lock
+poetry.toml
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Logs and local config
+logs/
+*.log
+
+# dotenv environment variables
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# MacOS
+.DS_Store
+
+# mypy / pyright / Pylint
+.mypy_cache/
+.pyright/
+.pylint.d/
+
+# Local data, temp files
+tmp/
+temp/
+*.bak
+*.swp
