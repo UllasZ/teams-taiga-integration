@@ -12,6 +12,18 @@ This project demonstrates a simple mock integration between Microsoft Teams and 
 - Centralized logging to file
 - Clean, testable, extensible architecture
 
+## Workflow Summary
+- Message is received from Teams.
+- All current stories and sub-tasks are fetched.
+- LLM checks for:
+  - Duplicate user story
+  - Sub-task under an existing story
+  - Semantic similarity to any story
+- If not a duplicate:
+  - Sub-task is created under matched story or
+  - A new story is created
+- Priority is auto-fetched per project and assigned accordingly.
+
 ## Project Structure
 .
 ├── api/
@@ -75,41 +87,24 @@ poetry run uvicorn main:app --reload
 This will start the server at http://127.0.0.1:8000.
 
 ## API Usage
-### 1. Trigger a mock Teams message to create a task
+### 1. POST /api/taiga/teams-webhook
+Processes a Microsoft Teams webhook message.
 ```bash
-curl -X POST http://127.0.0.1:8000/teams/ \
+curl -X POST http://127.0.0.1:8000/teams/webhook \
      -H "Content-Type: application/json" \
-     -d '{"text": "Setup deployment pipeline for staging"}'
+     -d '{"text": "Investigate why the staging environment is not syncing with production."}'
 ```
 This will:
 - Check if a similar task already exists in Taiga
 - If not, use LLM to enrich the title with a description
 - Create a task in Taiga
 
-### 2. Manually create a task (optional)
+### 2. POST /api/teams/webhook
+Alternative, simpler endpoint for handling Teams messages.
 ```bash
-curl -X POST http://127.0.0.1:8000/taiga/create-task \
+curl -X POST http://127.0.0.1:8000/taiga/webhook \
      -H "Content-Type: application/json" \
-     -d '{
-           "title": "Optimize DB queries",
-           "description": "Refactor slow queries in reports module"
-         }'
-```
-
-### 3. Create a task and link it with a mocked team
-```bash
-curl -X POST http://127.0.0.1:8000/teams/create-task-with-team \
-     -H "Content-Type: application/json" \
-     -d '{
-           "title": "Integrate PayPal",
-           "team_name": "Payments",
-           "team_description": "Handles all payment gateway logic"
-         }'
-```
-
-### 4. Retrieve linked team by task ID
-```bash
-curl http://127.0.0.1:8000/teams/team-by-task/12345
+     -d '{"title": "Check DNS between pre-prod and prod"}'
 ```
 
 ### Logs
@@ -129,48 +124,135 @@ Steps:
 <details> <summary><code>Click to expand the Insomnia JSON export</code></summary>
 {
   "_type": "export",
-  "__export_format": 4,
+  "__export_format": 5,
   "__export_date": "2025-06-17T00:00:00.000Z",
-  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "__export_source": "insomnia.desktop",
   "resources": [
     {
-      "_id": "wrk_teams_taiga_integration",
-      "created": 1718592000000,
-      "description": "Simulates Microsoft Teams message ingestion and Taiga task creation.",
-      "modified": 1718592000000,
-      "name": "Teams-Taiga-Integration",
+      "_id": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "created": 1750200563795,
+      "description": "",
+      "modified": 1750200563795,
+      "name": "Teams Taiga LLM Integration",
+      "type": "workspace",
       "_type": "workspace"
     },
     {
-      "_id": "req_send_teams_message",
-      "created": 1718592001000,
-      "modified": 1718592001000,
-      "parentId": "wrk_teams_taiga_integration",
-      "name": "Send Teams Message",
+      "_id": "req_804f47a50ee0412788fd413fe0e49211",
+      "parentId": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "modified": 1750231596583,
+      "created": 1750229033989,
+      "url": "http://localhost:8000/teams/webhook",
+      "name": "Create a Story from Teams",
       "method": "POST",
-      "url": "http://localhost:8000/teams",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"text\": \"We need to add OAuth2 login support to the platform\"\n}"
+        "text": "{\n     \"text\": \"Investigate why the staging environment is not syncing with production.\"\n}"
       },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "authentication": {},
+      "metaSortKey": -1750229033989,
+      "isPrivate": false,
       "_type": "request"
     },
     {
-      "_id": "req_create_task_taiga",
-      "created": 1718592002000,
-      "modified": 1718592002000,
-      "parentId": "wrk_teams_taiga_integration",
-      "name": "Create Task in Taiga Manually",
+      "_id": "req_36bec15465c24a6a85e9d2755621f237",
+      "parentId": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "modified": 1750237758994,
+      "created": 1750229662619,
+      "url": "http://localhost:8000/teams/webhook",
+      "name": "Create a sub task",
       "method": "POST",
-      "url": "http://localhost:8000/taiga/create-task",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"title\": \"Add logging to backend\",\n  \"description\": \"Enhance the backend by adding structured logs.\"\n}"
+        "text": "{\"text\": \"Review DNS between pre-prod and prod\"}"
       },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "authentication": {},
+      "metaSortKey": -1750229662619,
+      "isPrivate": false,
       "_type": "request"
+    },
+    {
+      "_id": "req_cf8ae085f9694ccb9e78e8e658305412",
+      "parentId": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "modified": 1750237851625,
+      "created": 1750230780936,
+      "url": "http://localhost:8000/teams/webhook",
+      "name": "Create sub-task for relevant story",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\"text\": \"Check if the sync script runs via cron in staging\"}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "authentication": {},
+      "metaSortKey": -1750229348304,
+      "isPrivate": false,
+      "_type": "request"
+    },
+    {
+      "_id": "jar_b74a24bd8d6ef7bc8f2992b50f4c981b6c43d223",
+      "parentId": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "modified": 1750200563801,
+      "created": 1750200563801,
+      "name": "Default Jar",
+      "cookies": [],
+      "_type": "cookie_jar"
+    },
+    {
+      "_id": "env_b74a24bd8d6ef7bc8f2992b50f4c981b6c43d223",
+      "parentId": "wrk_71f6a7877ea34237898effcd7ee879d4",
+      "modified": 1750200563799,
+      "created": 1750200563799,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1750200563799,
+      "_type": "environment"
+    },
+    {
+      "_id": "env_9a7a673646d7471e8cac8191cfa3fe0b",
+      "parentId": "env_b74a24bd8d6ef7bc8f2992b50f4c981b6c43d223",
+      "modified": 1750200579280,
+      "created": 1750200579280,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1750200579280,
+      "_type": "environment"
     }
   ]
 }
+
 </details>
 
 - Once imported, you will see:
@@ -182,6 +264,13 @@ Steps:
 - All team/channel logic is in-memory and not persisted.
 - No caching is added in this version.
 - Unit tests are not included.
+- Priorities are fetched using:
+  ```bash
+  GET /api/v1/priorities?project=<project_id>
+  ```
+- Description content is enriched using an LLM. 
+- Handles empty or irrelevant input gracefully.
+- Duplicates are avoided using semantic similarity logic.
 
 ### Future Enhancements
 - Add Redis or SQL to persist team-task mappings
