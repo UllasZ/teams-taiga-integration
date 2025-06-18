@@ -25,6 +25,7 @@ This project demonstrates a simple mock integration between Microsoft Teams and 
 - Priority is auto-fetched per project and assigned accordingly.
 
 ## Project Structure
+```bash
 .
 ├── api/
 │ ├── taiga.py # Exposes endpoints for Taiga task creation
@@ -47,6 +48,7 @@ This project demonstrates a simple mock integration between Microsoft Teams and 
 ├── .gitignore
 ├── README.md
 └── main.py # FastAPI entry point
+```
 
 ## Setup Instructions
 
