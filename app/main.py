@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-
 from app.api import taiga
 from app.api.teams import router as teams_router
 
