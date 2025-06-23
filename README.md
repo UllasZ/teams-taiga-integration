@@ -28,11 +28,11 @@ This project demonstrates a simple mock integration between Microsoft Teams and 
 ```bash
 .
 ├── api/
-│ ├── taiga.py # Exposes endpoints for Taiga task creation
 │ └── teams.py # Exposes mocked Teams webhook and linking APIs
 │
 ├── app/
 │ ├── api_clients/
+│ │ └── llm_client.py # Raw HTTP logic for interacting with Ollama
 │ │ └── taiga_client.py # Raw HTTP logic for interacting with Taiga
 │ ├── services/
 │ │ ├── taiga_service.py # Business logic layer for task handling

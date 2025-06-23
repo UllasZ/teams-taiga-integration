@@ -1,7 +1,7 @@
 import requests
 from app.config import TAIGA_API_URL
-from app.services.taiga_auth import get_taiga_token
 from app.logger.logger import log
+from app.services.taiga_service.taiga_auth import get_taiga_token
 
 
 def taiga_auth_headers():
