@@ -9,7 +9,8 @@ def enrich_task_description(title: str) -> str:
     prompt = (
         "You are a project assistant. Based on the following task title, "
         "write a clear, concise task description in 2-3 sentences.\n"
-        f"Task title: {title}"
+        f"Task title: {title}\n\n"
+        f"Reply with only the description, without any introduction or formatting."
     )
     return call_llm(prompt)
 

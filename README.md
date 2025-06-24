@@ -11,16 +11,11 @@ This project demonstrates a simple mock integration between Microsoft Teams and 
 - Clean, testable, extensible architecture
 
 ## Workflow Summary
-- Message is received from Teams.
-- All current stories and sub-tasks are fetched.
-- LLM checks for:
-  - Duplicate user story
-  - Sub-task under an existing story
-  - Semantic similarity to any story
-- If not a duplicate:
-  - Sub-task is created under matched story or
-  - A new story is created
-- Priority is auto-fetched per project and assigned accordingly.
+- Message is sent via /simulate.
+- Existing user stories and sub-tasks are fetched from Taiga.
+- Semantic comparison avoids duplicate creation.
+- LLM generates description and sub-tasks.
+- Task is created under matched or new story in Taiga.
 
 ## Project Structure
 ```bash
@@ -95,18 +90,25 @@ poetry run uvicorn main:app --reload
 ```
 This will start the server at http://127.0.0.1:8000.
 
-## API Usage
-### POST /api/taiga/teams-webhook
-Processes a Microsoft Teams webhook message.
+## API Endpoints
+### POST /teams/simulate
+Simulate a Teams message.
 ```bash
-curl -X POST http://127.0.0.1:8000/teams/webhook \
+curl -X POST http://127.0.0.1:8000/teams/simulate \
      -H "Content-Type: application/json" \
-     -d '{"text": "Investigate why the staging environment is not syncing with production."}'
+     -d '{"message": "The reports page is failing on mobile."}'
 ```
-This will:
-- Check if a similar task already exists in Taiga
-- If not, use LLM to enrich the title with a description
-- Create a task in Taiga
+## GET /teams/user_stories
+Returns all user stories in the project.
+
+## GET /teams/user_stories/{story_id}
+Returns a specific user story by ID.
+
+## GET /teams/user_stories/{story_id}/tasks
+Returns all tasks (sub-tasks) under a specific user story.
+
+## GET /teams/tasks/{task_id}
+Returns a specific sub-task by ID.
 
 ### Logs
 Logs are saved in the logs/teams_taiga_integration.log file. Logging includes:
@@ -116,51 +118,14 @@ Logs are saved in the logs/teams_taiga_integration.log file. Logging includes:
 - Errors from Taiga or Ollama
 
 ### API Testing with Insomnia
-You can quickly test the integration using Insomnia REST client.
-
-Steps:
 - Open Insomnia.
-- Go to Application Menu → Import/Export → Import Data → From Raw Text.
-- Paste the following JSON export:
-<details> <summary><code>Click to expand the Insomnia JSON export</code></summary>
+- Import raw JSON:
+```bash
 {
-  "project_structure": {
-    "api": {
-      "teams.py": "Simulated Microsoft Teams webhook & task linking endpoints"
-    },
-    "app": {
-      "api_clients": {
-        "llm_client.py": "Raw HTTP client for communicating with Ollama LLM API",
-        "taiga_client.py": "Raw HTTP client for interacting with Taiga API (e.g., auth, task ops)"
-      },
-      "logger": {
-        "logger.py": "Custom logger setup using Python's logging module, logs to files"
-      },
-      "services": {
-        "llm_service": {
-          "llm_service.py": "Business logic for calling Ollama to enhance task descriptions"
-        },
-        "taiga_service": {
-          "taiga_auth.py": "Handles Taiga authentication and token management",
-          "taiga_service.py": "Abstracts high-level operations (fetch/create tasks, projects)",
-          "task_manager.py": "Orchestrates task creation logic: duplication check, hierarchy, etc."
-        }
-      },
-      "utils": {
-        "utils.py": "Stateless helper functions; no external dependencies"
-      },
-      "config.py": "Centralized environment/config variable loader",
-      "main.py": "FastAPI app entrypoint with route registration"
-    },
-    "logs": "Directory for storing generated log files",
-    ".gitignore": "Specifies intentionally untracked files to ignore",
-    "README.md": "Project documentation",
-    "run.py": "Optional startup script for launching the application"
-  }
+  "message": "We need a CI/CD pipeline for our microservices"
 }
-</details>
-
-- Once imported, you will see apis to simulate message from Teams to trigger task creation in Taiga.
+```
+- Send a POST request to ```bash /teams/simulate```.
 
 ### Notes
 - This project is a mock and does not interact with real Teams APIs.
@@ -176,10 +141,19 @@ Steps:
 - Duplicates are avoided using semantic similarity logic.
 
 ### Future Enhancements
-- Add Redis or SQL to persist team-task mappings
-- Use real Teams APIs with OAuth
-- Add token refresh logic and error handling for Taiga
-- Add job queues for async LLM or task creation
-- Add unit and integration tests
+- Add real Teams OAuth & webhook support
+- Async background processing (LLM, Taiga I/O)
+- Use Redis/DB for state persistence
+- Token refresh logic for Taiga
+- Unit & integration tests
 
-This project is intended to show practical API design, async logic (where relevant), and clean code structure. Built for learning and demonstration purposes.
+## Frontend (React)
+- Check out the dashboard frontend: https://github.com/UllasZ/teams-taiga-dashboard
+
+- It includes:
+  - Message Simulator UI
+  - Live updates of stories and tasks
+  - Chakra UI for components
+  - Toast-based alerts instead of raw alerts
+
+## This project is intended to show practical API design, async logic (where relevant), and clean code structure. Built for learning and demonstration purposes.
