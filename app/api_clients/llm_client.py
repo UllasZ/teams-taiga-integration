@@ -6,13 +6,12 @@ from app.config import OLLAMA_API_URL
 from app.logger.logger import log
 
 
-def call_llm(prompt: str, model: str = "llama3", timeout: int = 15) -> str:
+def call_llm(prompt: str, model: str = "llama3") -> str:
     """Internal helper to send a prompt to the LLM and return the response text."""
     try:
         response = requests.post(
             OLLAMA_API_URL,
             json={"model": model, "prompt": prompt, "stream": False},
-            timeout=timeout
         )
         log.debug(f"LLM response: {response.status_code}")
         response.raise_for_status()

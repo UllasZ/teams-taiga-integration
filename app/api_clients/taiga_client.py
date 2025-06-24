@@ -30,6 +30,26 @@ def get_user_stories(project_id: int) -> list:
         log.error(f"Error fetching user stories: {e}")
         raise
 
+def get_user_story_by_id(story_id: int) -> list:
+    try:
+        url = f"{TAIGA_API_URL}/userstories/{story_id}"
+        response = requests.get(url, headers=taiga_auth_headers())
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        log.error(f"Error fetching user story: {e}")
+        raise
+
+def get_task_by_id(task_id: int) -> list:
+    try:
+        url = f"{TAIGA_API_URL}/tasks/{task_id}"
+        response = requests.get(url, headers=taiga_auth_headers())
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        log.error(f"Error fetching task: {e}")
+        raise
+
 
 def get_userstory_statuses(project_id: int) -> list:
     try:
